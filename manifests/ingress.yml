@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: "aksubiso99bluedev-382d"
+    labels:
+        app: "aksubiso99bluedev-382d"
+    annotations:
+        kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+    rules:
+        - host: aks-ubi-so99blue-devaf5c-aksubiso99bluedev-382d.14b366b45edc437696a2.westeurope.aksapp.io
+          http:
+            paths:
+            - path: /
+              backend:
+                serviceName: "aksubiso99bluedev-382d"
+                servicePort: 80
