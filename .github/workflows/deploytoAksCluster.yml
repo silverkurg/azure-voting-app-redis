@@ -1,0 +1,51 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: 48fa4f83051d488daa7a1892b352a0a4.azurecr.io
+        username: ${{ secrets.acr_48fa4f83051d488daa7a1892b352a0a4_username }}
+        password: ${{ secrets.acr_48fa4f83051d488daa7a1892b352a0a4_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/azure-vote" -f  "azure-vote/Dockerfile" -t 48fa4f83051d488daa7a1892b352a0a4.azurecr.io/aksubiso99bluedev:${{ github.sha }} --label dockerfile-path=azure-vote/Dockerfile
+        docker push 48fa4f83051d488daa7a1892b352a0a4.azurecr.io/aksubiso99bluedev:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_aksubiso99bluedev_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep aks-ubi-so99blue-devaf5c | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace aks-ubi-so99blue-devaf5c`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: aks-ubi-so99blue-devaf5c
+        container-registry-url: 48fa4f83051d488daa7a1892b352a0a4.azurecr.io
+        container-registry-username: ${{ secrets.acr_48fa4f83051d488daa7a1892b352a0a4_username }}
+        container-registry-password: ${{ secrets.acr_48fa4f83051d488daa7a1892b352a0a4_password }}
+        secret-name: aksubiso99bldockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: aks-ubi-so99blue-devaf5c
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+          manifests/ingress.yml
+        images: |
+          48fa4f83051d488daa7a1892b352a0a4.azurecr.io/aksubiso99bluedev:${{ github.sha }}
+        imagepullsecrets: |
+          aksubiso99bldockerauth
