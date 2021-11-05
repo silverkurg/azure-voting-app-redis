@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "aksubiso99bluedev-382d"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "aksubiso99bluedev-382d"
+  template:
+    metadata:
+      labels:
+        app: "aksubiso99bluedev-382d"
+    spec:
+      containers:
+        - name: "aksubiso99bluedev-382d"
+          image: "48fa4f83051d488daa7a1892b352a0a4.azurecr.io/aksubiso99bluedev"
+          ports:
+          - containerPort: 80
